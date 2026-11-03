@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Characteristics Toolkit | Module 1</title>
+
+  <!-- CSS is optional. The website works without it. -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <p class="eyebrow">ENCS4380 · Interfacing Techniques</p>
+      <h1>Dynamic Characteristics Toolkit</h1>
+      <p class="subtitle">Module 1 — First-order time response</p>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="intro panel">
+      <h2>Explore a first-order sensor</h2>
+      <p>
+        A first-order sensor does not respond instantly.
+        Its time constant, τ, determines how quickly its output
+        approaches the input's steady-state value.
+      </p>
+
+      <p class="equation">τ dy/dt + y = Kx</p>
+
+      <p>
+        For a step input of amplitude A, the response is
+        <strong>y(t) = KA(1 − e<sup>−t/τ</sup>)</strong>.
+      </p>
+    </section>
+
+    <section class="panel controls-panel">
+      <h2>Sensor controls</h2>
+
+      <div class="controls-grid">
+
+        <div class="control">
+          <label for="gain">
+            Gain (K): <output id="gainValue">1.0</output>
+          </label>
+          <input id="gain" type="range"
+                 min="0.2" max="3" step="0.1" value="1">
+          <div class="range-labels">
+            <span>0.2</span><span>3.0</span>
+          </div>
+        </div>
+
+        <div class="control">
+          <label for="tau">
+            Time constant (τ): <output id="tauValue">2.0 s</output>
+          </label>
+          <input id="tau" type="range"
+                 min="0.2" max="10" step="0.1" value="2">
+          <div class="range-labels">
+            <span>0.2 s</span><span>10 s</span>
+          </div>
+        </div>
+
+        <div class="control">
+          <label for="amplitude">
+            Input amplitude (A):
+            <output id="amplitudeValue">1.0</output>
+          </label>
+          <input id="amplitude" type="range"
+                 min="0.2" max="3" step="0.1" value="1">
+          <div class="range-labels">
+            <span>0.2</span><span>3.0</span>
+          </div>
+        </div>
+
+        <div class="control">
+          <label for="inputType">Input type</label>
+          <select id="inputType">
+            <option value="step">Step</option>
+            <option value="ramp">Ramp</option>
+          </select>
+        </div>
+
+      </div>
+
+      <button id="resetButton" type="button">
+        Reset parameters
+      </button>
+    </section>
+
+    <section class="panel">
+
+      <div class="section-heading">
+        <div>
+          <h2>Sensor response</h2>
+          <p class="muted">
+            The plot updates immediately when a parameter changes.
+          </p>
+        </div>
+
+        <span id="plotMode" class="tag">Step input</span>
+      </div>
+
+      <div class="chart-wrap">
+        <canvas id="responsePlot"
+          role="img"
+          aria-label="Plot of input and first-order sensor output over time">
+          Your browser does not support canvas.
+        </canvas>
+      </div>
+
+      <div class="legend">
+        <span>
+          <i class="swatch input-swatch"></i>
+          Input (scaled by K)
+        </span>
+
+        <span>
+          <i class="swatch output-swatch"></i>
+          Sensor output
+        </span>
+      </div>
+
+      <div id="responseExplanation"
+           class="explanation"
+           aria-live="polite">
+      </div>
+
+    </section>
+
+    <section class="two-column">
+
+      <article class="panel">
+        <h2>Important time markers</h2>
+
+        <div class="metric-list">
+
+          <div class="metric">
+            <span>At t = τ</span>
+            <strong id="atTau">63.2%</strong>
+          </div>
+
+          <div class="metric">
+            <span>At t = 3τ</span>
+            <strong id="atThreeTau">95.0%</strong>
+          </div>
+
+          <div class="metric">
+            <span>Steady-state step output</span>
+            <strong id="steadyOutput">1.00</strong>
+          </div>
+
+          <div class="metric">
+            <span>Ramp time lag</span>
+            <strong id="rampLag">2.00 s</strong>
+          </div>
+
+          <div class="metric">
+            <span>Ramp steady-state error</span>
+            <strong id="rampError">2.00</strong>
+          </div>
+
+        </div>
+
+        <p class="small-note">
+          The ramp lag is τ seconds. For a ramp with slope A,
+          the steady-state output error is K A τ.
+          Ramp values are calculated even while the step input is selected.
+        </p>
+      </article>
+
+      <article class="panel">
+        <h2>Validation check 1</h2>
+
+        <p>
+          For the first-order step response, the expected values are:
+        </p>
+
+        <div class="validation-row">
+          <span>y(τ) / KA</span>
+          <strong>0.632</strong>
+          <span id="checkTau" class="status">Checking…</span>
+        </div>
+
+        <div class="validation-row">
+          <span>y(3τ) / KA</span>
+          <strong>0.950</strong>
+          <span id="checkThreeTau" class="status">Checking…</span>
+        </div>
+
+        <p class="small-note">
+          The checks use the exact model equation,
+          independent of the selected gain and amplitude.
+        </p>
+      </article>
+
+    </section>
+
+    <section class="panel">
+      <h2>Error-fraction plot (logarithmic vertical axis)</h2>
+
+      <p>
+        For a step response, the error fraction is
+        <strong>e<sub>m</sub>(t) = e<sup>−t/τ</sup></strong>.
+        Taking the natural logarithm gives a straight line:
+        <strong>ln(e<sub>m</sub>) = −t/τ</strong>,
+        whose slope is −1/τ.
+      </p>
+
+      <div class="chart-wrap">
+        <canvas id="errorPlot"
+          role="img"
+          aria-label="Logarithmic error fraction plot against time">
+          Your browser does not support canvas.
+        </canvas>
+      </div>
+
+      <p class="small-note">
+        The vertical axis is logarithmic.
+        The plotted error fraction decreases exponentially over time.
+      </p>
+    </section>
+
+    <section class="panel predict-panel">
+      <h2>Predict, then check</h2>
+
+      <p>
+        Before changing the time constant, predict what will happen
+        to the response when τ increases.
+      </p>
+
+      <label for="prediction">Your prediction</label>
+
+      <select id="prediction">
+        <option value="">Choose your prediction…</option>
+        <option value="slower">
+          The sensor responds more slowly.
+        </option>
+        <option value="faster">
+          The sensor responds faster.
+        </option>
+        <option value="same">
+          The response speed stays the same.
+        </option>
+      </select>
+
+      <button id="checkPrediction" type="button">
+        Check my prediction
+      </button>
+
+      <p id="predictionFeedback"
+         class="feedback"
+         aria-live="polite">
+        Make a prediction to see the explanation.
+      </p>
+    </section>
+
+    <footer>
+      <p>ENCS4380 · Dynamic Characteristics Interactive Toolkit</p>
+      <p>Module 1 — First-order time response</p>
+    </footer>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
