@@ -12,7 +12,7 @@ The toolkit consists of four modules covering first-order and second-order syste
 
 ## Live Demo
 
-**GitHub Pages:** [Insert project link here]
+**GitHub Pages:** [https://github.com/tareqZiad2005/encs4380-dynamics-36.git]
 
 ## Project Modules
 
