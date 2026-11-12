@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta content="Interactive ENCS4380 Dynamic Characteristics Toolkit" name="description"/>
+  <title>
+   Dynamic Characteristics Toolkit | ENCS4380
+  </title>
+  <link href="style.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <header class="site-header">
+   <div class="header-inner">
+    <h1>
+     Dynamic Characteristics Toolkit
+    </h1>
+    <nav aria-label="Module navigation" class="module-nav">
+     <a href="#module1">
+      1 &middot; Time response
+     </a>
+     <a href="#module2">
+      2 &middot; Frequency response
+     </a>
+     <a href="#module3">
+      3 &middot; Second order
+     </a>
+     <a href="#module4">
+      4 &middot; Guess the sensor
+     </a>
+     <a href="#validation">
+      Validation
+     </a>
+    </nav>
+   </div>
+  </header>
+  <main>
+   <section class="module-section" id="module1">
+    <div class="module-title">
+     <div>
+      <h2>
+       First-order time response
+      </h2>
+     </div>
+    </div>
+    <section class="intro panel">
+     <h3>
+      Explore a first-order sensor
+     </h3>
+     <p>
+      A first-order sensor does not respond instantly. Its time constant, &tau;, determines how quickly its output approaches the input's steady-state value.
+     </p>
+     <p class="equation">
+      &tau; dy/dt + y = Kx
+     </p>
+     <p>
+      For a step input of amplitude A:
+      <strong>
+       y(t) = KA(1 &minus; e
+       <sup>
+        &minus;t/&tau;
+       </sup>
+       )
+      </strong>
+      .
+     </p>
+    </section>
+    <section class="panel">
+     <h3>
+      Sensor controls
+     </h3>
+     <div class="controls-grid">
+      <div class="control">
+       <label for="gain">
+        Gain (K):
+        <output id="gainValue">
+         1.0
+        </output>
+       </label>
+       <input id="gain" max="3" min="0.2" step="0.1" type="range" value="1"/>
+       <div class="range-labels">
+        <span>
+         0.2
+        </span>
+        <span>
+         3.0
+        </span>
+       </div>
+      </div>
+      <div class="control">
+       <label for="tau">
+        Time constant (&tau;):
+        <output id="tauValue">
+         2.0 s
+        </output>
+       </label>
+       <input id="tau" max="10" min="0.2" step="0.1" type="range" value="2"/>
+       <div class="range-labels">
+        <span>
+         0.2 s
+        </span>
+        <span>
+         10 s
+        </span>
+       </div>
+      </div>
+      <div class="control">
+       <label for="amplitude">
+        Input amplitude (A):
+        <output id="amplitudeValue">
+         1.0
+        </output>
+       </label>
+       <input id="amplitude" max="3" min="0.2" step="0.1" type="range" value="1"/>
+       <div class="range-labels">
+        <span>
+         0.2
+        </span>
+        <span>
+         3.0
+        </span>
+       </div>
+      </div>
+      <div class="control">
+       <label for="inputType">
+        Input type
+       </label>
+       <select id="inputType">
+        <option value="step">
+         Step
+        </option>
+        <option value="ramp">
+         Ramp
+        </option>
+       </select>
+      </div>
+     </div>
+     <button id="resetButton" type="button">
+      Reset parameters
+     </button>
+    </section>
+    <section class="panel">
+     <div class="section-heading">
+      <div>
+       <h3>
+        Sensor response
+       </h3>
+       <p class="muted">
+        The plot updates immediately when a parameter changes.
+       </p>
+      </div>
+      <span id="plotMode">
+       Step input
+      </span>
+     </div>
+     <div class="chart-wrap">
+      <canvas aria-label="Input and first-order sensor output over time" id="responsePlot" role="img">
+      </canvas>
+     </div>
+     <div class="legend">
+      <span>
+       <i class="swatch input-swatch">
+       </i>
+       Input (scaled by K)
+      </span>
+      <span>
+       <i class="swatch output-swatch">
+       </i>
+       Sensor output
+      </span>
+     </div>
+     <div aria-live="polite" class="explanation" id="responseExplanation">
+     </div>
+    </section>
+    <div class="two-column">
+     <article class="panel">
+      <h3>
+       Important time markers
+      </h3>
+      <div class="metric">
+       <span>
+        At t = &tau;
+       </span>
+       <strong id="atTau">
+        63.2%
+       </strong>
+      </div>
+      <div class="metric">
+       <span>
+        At t = 3&tau;
+       </span>
+       <strong id="atThreeTau">
+        95.0%
+       </strong>
+      </div>
+      <div class="metric">
+       <span>
+        Steady-state step output
+       </span>
+       <strong id="steadyOutput">
+        1.00
+       </strong>
+      </div>
+      <div class="metric">
+       <span>
+        Ramp time lag
+       </span>
+       <strong id="rampLag">
+        2.00 s
+       </strong>
+      </div>
+      <div class="metric">
+       <span>
+        Ramp steady-state error
+       </span>
+       <strong id="rampError">
+        2.00
+       </strong>
+      </div>
+      <p class="small-note">
+       For a ramp with slope A, the time lag is &tau; and the steady-state error is K A &tau;.
+      </p>
+     </article>
+     <article class="panel">
+      <h3>
+       Validation check 1
+      </h3>
+      <div class="validation-row">
+       <span>
+        y(&tau;) / KA
+       </span>
+       <strong>
+        0.632
+       </strong>
+       <span class="status" id="checkTau">
+        Checking&hellip;
+       </span>
+      </div>
+      <div class="validation-row">
+       <span>
+        y(3&tau;) / KA
+       </span>
+       <strong>
+        0.950
+       </strong>
+       <span class="status" id="checkThreeTau">
+        Checking&hellip;
+       </span>
+      </div>
+      <p class="small-note">
+       The checks use the exact first-order step equation.
+      </p>
+     </article>
+    </div>
+    <section class="panel">
+     <h3>
+      Error-fraction plot (logarithmic vertical axis)
+     </h3>
+     <p>
+      For a step response, the error fraction is
+      <strong>
+       e
+       <sub>
+        m
+       </sub>
+       (t) = e
+       <sup>
+        &minus;t/&tau;
+       </sup>
+      </strong>
+      . Its logarithm is a straight line with slope &minus;1/&tau;.
+     </p>
+     <div class="chart-wrap">
+      <canvas aria-label="Logarithmic error fraction plot" id="errorPlot" role="img">
+      </canvas>
+     </div>
+    </section>
+    <section class="panel predict-panel">
+     <h3>
+      Predict, then check
+     </h3>
+     <p>
+      What happens to the response when &tau; increases?
+     </p>
+     <label for="prediction">
+      Your prediction
+     </label>
+     <select id="prediction">
+      <option value="">
+       Choose your prediction&hellip;
+      </option>
+      <option value="slower">
+       The sensor responds more slowly.
+      </option>
+      <option value="faster">
+       The sensor responds faster.
+      </option>
+      <option value="same">
+       The response speed stays the same.
+      </option>
+     </select>
+     <button id="checkPrediction" type="button">
+      Check my prediction
+     </button>
+     <p aria-live="polite" class="feedback" id="predictionFeedback">
+      Make a prediction to see the explanation.
+     </p>
+    </section>
+   </section>
+   <section class="module-section" id="module2">
+    <div class="module-title">
+     <div>
+      <h2>
+       First-order frequency response
+      </h2>
+     </div>
+    </div>
+    <section class="panel">
+     <p>
+      A first-order sensor changes the amplitude and phase of a sinusoidal input. Increase the input frequency to see the output become smaller and lag further behind.
+     </p>
+     <p class="equation">
+      M = 1 / &radic;(1 + (&omega;&tau;)&sup2;) &nbsp; &middot; &nbsp; &phi; = &minus;tan⁻&sup1;(&omega;&tau;)
+     </p>
+     <div class="controls-grid">
+      <div class="control">
+       <label for="m2tau">
+        Time constant &tau;:
+        <output id="m2tauVal">
+         0.20 s
+        </output>
+       </label>
+       <input id="m2tau" max="1" min="0.01" step="0.01" type="range" value="0.2"/>
+      </div>
+      <div class="control">
+       <label for="m2freq">
+        Input frequency f:
+        <output id="m2freqVal">
+         0.32 Hz
+        </output>
+       </label>
+       <input id="m2freq" max="10" min="0.1" step="0.1" type="range" value="0.318309886"/>
+      </div>
+      <div class="control">
+       <label for="m2amp">
+        Input amplitude:
+        <output id="m2ampVal">
+         1.0
+        </output>
+       </label>
+       <input id="m2amp" max="3" min="0.2" step="0.1" type="range" value="1"/>
+      </div>
+     </div>
+     <div class="metric-grid">
+      <div class="metric-card">
+       <span>
+        Amplitude ratio M
+       </span>
+       <strong id="m2ratio">
+        0.928
+       </strong>
+      </div>
+      <div class="metric-card">
+       <span>
+        Phase lag
+       </span>
+       <strong id="m2phase">
+        21.8&deg;
+       </strong>
+      </div>
+      <div class="metric-card">
+       <span>
+        Cutoff frequency &omega;c
+       </span>
+       <strong id="m2cutoff">
+        5.00 rad/s
+       </strong>
+      </div>
+      <div class="metric-card">
+       <span>
+        Dynamic error &delta; = M &minus; 1
+       </span>
+       <strong id="m2error">
+        &minus;7.2%
+       </strong>
+      </div>
+     </div>
+    </section>
+    <section class="panel">
+     <h3>
+      Input and output sine waves
+     </h3>
+     <div class="chart-wrap">
+      <canvas id="m2timePlot">
+      </canvas>
+     </div>
+     <div class="legend">
+      <span>
+       <i class="swatch input-swatch">
+       </i>
+       Input
+      </span>
+      <span>
+       <i class="swatch output-swatch">
+       </i>
+       Output
+      </span>
+     </div>
+    </section>
+    <section class="panel">
+     <h3>
+      Bode magnitude response
+     </h3>
+     <p class="muted">
+      The vertical marker shows the cutoff at &omega; = 1/&tau;, where M = 0.707 (&minus;3 dB).
+     </p>
+     <div class="chart-wrap">
+      <canvas id="m2bodePlot">
+      </canvas>
+     </div>
+    </section>
+    <section class="panel predict-panel">
+     <h3>
+      Predict, then check
+     </h3>
+     <p>
+      If the input frequency increases while &tau; stays fixed, what happens to the amplitude ratio?
+     </p>
+     <label for="m2prediction">
+      Your prediction
+     </label>
+     <select id="m2prediction">
+      <option value="">
+       Choose&hellip;
+      </option>
+      <option value="decrease">
+       It decreases.
+      </option>
+      <option value="increase">
+       It increases.
+      </option>
+      <option value="same">
+       It stays the same.
+      </option>
+     </select>
+     <button id="m2check" type="button">
+      Check prediction
+     </button>
+     <p class="feedback" id="m2feedback">
+      Make a prediction first.
+     </p>
+    </section>
+    <section class="panel validation-panel">
+     <h3>
+      Validation check 2
+     </h3>
+     <p>
+      &tau; = 0.2 s and input sin(2t): expected amplitude ratio 0.93 and phase lag 21.8&deg;.
+     </p>
+     <div class="validation-row">
+      <span>
+       Amplitude ratio
+      </span>
+      <strong>
+       0.93
+      </strong>
+      <span class="status" id="m2checkAmp">
+       Checking&hellip;
+      </span>
+     </div>
+     <div class="validation-row">
+      <span>
+       Phase lag
+      </span>
+      <strong>
+       21.8&deg;
+      </strong>
+      <span class="status" id="m2checkPhase">
+       Checking&hellip;
+      </span>
+     </div>
+    </section>
+    <section class="panel">
+     <h3>
+      Validation check 3 &middot; 100 Hz bandwidth
+     </h3>
+     <p>
+      For at most 5% dynamic error at 100 Hz, &tau;max &asymp; 0.52 ms. At 50 Hz, the phase lag is approximately 9.3&deg;.
+     </p>
+     <div class="validation-row">
+      <span>
+       Calculated &tau;max
+      </span>
+      <strong>
+       &asymp; 0.52 ms
+      </strong>
+      <span class="status" id="m2checkTau">
+       Checking&hellip;
+      </span>
+     </div>
+     <div class="validation-row">
+      <span>
+       Phase lag at 50 Hz
+      </span>
+      <strong>
+       &asymp; 9.3&deg;
+      </strong>
+      <span class="status" id="m2check50">
+       Checking&hellip;
+      </span>
+     </div>
+    </section>
+   </section>
+   <section class="module-section" id="module3">
+    <div class="module-title">
+     <div>
+      <h2>
+       Second-order response
+      </h2>
+     </div>
+    </div>
+    <section class="panel">
+     <p>
+      Use damping ratio &zeta; and natural frequency &omega;n to explore the three second-order responses. The default model is a unit-step displacement response.
+     </p>
+     <p class="equation">
+      G(s) = K&omega;n&sup2; / (s&sup2; + 2&zeta;&omega;n s + &omega;n&sup2;)
+     </p>
+     <div class="controls-grid">
+      <div class="control">
+       <label for="m3zeta">
+        Damping ratio &zeta;:
+        <output id="m3zetaVal">
+         0.50
+        </output>
+       </label>
+       <input id="m3zeta" max="2" min="0.05" step="0.01" type="range" value="0.5"/>
+      </div>
+      <div class="control">
+       <label for="m3wn">
+        Natural frequency &omega;n:
+        <output id="m3wnVal">
+         2.00 rad/s
+        </output>
+       </label>
+       <input id="m3wn" max="10" min="0.2" step="0.1" type="range" value="2"/>
+      </div>
+      <div class="control">
+       <label for="m3gain">
+        Gain K:
+        <output id="m3gainVal">
+         1.00
+        </output>
+       </label>
+       <input id="m3gain" max="3" min="0.2" step="0.1" type="range" value="1"/>
+      </div>
+     </div>
+     <div class="metric-grid">
+      <div class="metric-card">
+       <span>
+        Response type
+       </span>
+       <strong id="m3type">
+        Underdamped
+       </strong>
+      </div>
+      <div class="metric-card">
+       <span>
+        Rise time (10&ndash;90%)
+       </span>
+       <strong id="m3rise">
+        &mdash;
+       </strong>
+      </div>
+      <div class="metric-card">
+       <span>
+        Peak time
+       </span>
+       <strong id="m3peak">
+        &mdash;
+       </strong>
+      </div>
+      <div class="metric-card">
+       <span>
+        Overshoot
+       </span>
+       <strong id="m3overshoot">
+        16.3%
+       </strong>
+      </div>
+      <div class="metric-card">
+       <span>
+        Settling time (2%)
+       </span>
+       <strong id="m3settle">
+        &mdash;
+       </strong>
+      </div>
+     </div>
+    </section>
+    <section class="panel">
+     <h3>
+      Step response
+     </h3>
+     <div class="chart-wrap">
+      <canvas id="m3response">
+      </canvas>
+     </div>
+    </section>
+    <section class="panel">
+     <h3>
+      Poles in the s-plane
+     </h3>
+     <p class="muted">
+      The poles are the roots of s&sup2; + 2&zeta;&omega;n s + &omega;n&sup2; = 0.
+     </p>
+     <div class="chart-wrap short-chart">
+      <canvas id="m3poles">
+      </canvas>
+     </div>
+     <p class="explanation" id="m3poleText">
+     </p>
+    </section>
+    <section class="panel">
+     <h3>
+      State-space panel &middot; mass, damping and stiffness
+     </h3>
+     <p>
+      For x₁ = displacement and x₂ = velocity: ẋ = Ax + BF, y = [1 0]x.
+     </p>
+     <div class="controls-grid">
+      <div class="control">
+       <label for="m3mass">
+        Mass m:
+        <output id="m3massVal">
+         1.00
+        </output>
+       </label>
+       <input id="m3mass" max="5" min="0.2" step="0.1" type="range" value="1"/>
+      </div>
+      <div class="control">
+       <label for="m3damping">
+        Damping b:
+        <output id="m3dampingVal">
+         2.00
+        </output>
+       </label>
+       <input id="m3damping" max="10" min="0" step="0.1" type="range" value="2"/>
+      </div>
+      <div class="control">
+       <label for="m3stiffness">
+        Stiffness k:
+        <output id="m3stiffnessVal">
+         4.00
+        </output>
+       </label>
+       <input id="m3stiffness" max="20" min="0.2" step="0.1" type="range" value="4"/>
+      </div>
+     </div>
+     <div class="equation small-equation">
+      A = [[0, 1], [&minus;k/m, &minus;b/m]] &nbsp; B = [[0], [1/m]]
+     </div>
+     <div class="matrix-grid">
+      <div>
+       <h4>
+        Matrix A
+       </h4>
+       <pre id="m3matrixA">[[ 0, 1 ], [ -4, -2 ]]</pre>
+      </div>
+      <div>
+       <h4>
+        Matrix B
+       </h4>
+       <pre id="m3matrixB">[[ 0 ], [ 1 ]]</pre>
+      </div>
+      <div>
+       <h4>
+        Eigenvalues = poles
+       </h4>
+       <pre id="m3eigen">&minus;1 &plusmn; j1.732</pre>
+      </div>
+     </div>
+     <h4>
+      Phase-plane trajectory (x₁ against x₂)
+     </h4>
+     <div class="chart-wrap">
+      <canvas id="m3phase">
+      </canvas>
+     </div>
+    </section>
+    <section class="panel validation-panel">
+     <h3>
+      Validation checks 4&ndash;6
+     </h3>
+     <div class="validation-row">
+      <span>
+       &zeta; = 0.5 &rarr; overshoot
+      </span>
+      <strong>
+       16.3%
+      </strong>
+      <span class="status" id="m3checkOS">
+       Checking&hellip;
+      </span>
+     </div>
+     <div class="validation-row">
+      <span>
+       &zeta; = 1 &rarr; no overshoot
+      </span>
+      <strong>
+       0%
+      </strong>
+      <span class="status" id="m3checkCritical">
+       Checking&hellip;
+      </span>
+     </div>
+     <div class="validation-row">
+      <span>
+       m=1, b=2, k=4 &rarr; eigenvalues
+      </span>
+      <strong>
+       &minus;1 &plusmn; j1.732
+      </strong>
+      <span class="status" id="m3checkEigen">
+       Checking&hellip;
+      </span>
+     </div>
+    </section>
+    <section class="panel predict-panel">
+     <h3>
+      Predict, then check
+     </h3>
+     <p>
+      What happens when damping ratio &zeta; increases from 0.5 toward 1?
+     </p>
+     <label for="m3prediction">
+      Your prediction
+     </label>
+     <select id="m3prediction">
+      <option value="">
+       Choose&hellip;
+      </option>
+      <option value="less">
+       Overshoot decreases.
+      </option>
+      <option value="more">
+       Overshoot increases.
+      </option>
+      <option value="same">
+       Overshoot stays the same.
+      </option>
+     </select>
+     <button id="m3check" type="button">
+      Check prediction
+     </button>
+     <p class="feedback" id="m3feedback">
+      Make a prediction first.
+     </p>
+    </section>
+   </section>
+   <section class="module-section" id="module4">
+    <div class="module-title">
+     <div>
+      <h2>
+       Guess the sensor
+      </h2>
+     </div>
+    </div>
+    <section class="panel">
+     <p>
+      A sensor with hidden parameters has been selected. Study its noisy response, estimate its parameters, then reveal the true values and compare your guess.
+     </p>
+     <div class="challenge-top">
+      <span id="m4kind">
+       Mystery sensor
+      </span>
+      <span>
+       Session score:
+       <strong id="m4score">
+        0 / 0
+       </strong>
+      </span>
+     </div>
+     <div class="chart-wrap">
+      <canvas id="m4plot">
+      </canvas>
+     </div>
+     <div class="explanation" id="m4hint">
+      Hint: For a first-order step response, &tau; is the time at which the output reaches 63.2% of its final value.
+     </div>
+     <button class="secondary-button" id="m4hintButton" type="button">
+      Show / hide hint
+     </button>
+    </section>
+    <section class="panel">
+     <h3>
+      Your parameter estimate
+     </h3>
+     <div class="controls-grid" id="m4firstGuess">
+      <div class="control">
+       <label for="m4tauGuess">
+        Estimated &tau; (s)
+       </label>
+       <input id="m4tauGuess" max="20" min="0.05" step="0.01" type="number" value="1"/>
+      </div>
+      <div class="control">
+       <label for="m4kGuess">
+        Estimated gain K
+       </label>
+       <input id="m4kGuess" max="5" min="0.1" step="0.01" type="number" value="1"/>
+      </div>
+     </div>
+     <div class="controls-grid hidden" id="m4secondGuess">
+      <div class="control">
+       <label for="m4zetaGuess">
+        Estimated &zeta;
+       </label>
+       <input id="m4zetaGuess" max="1.5" min="0.05" step="0.01" type="number" value="0.5"/>
+      </div>
+      <div class="control">
+       <label for="m4wnGuess">
+        Estimated &omega;n (rad/s)
+       </label>
+       <input id="m4wnGuess" max="20" min="0.1" step="0.01" type="number" value="2"/>
+      </div>
+     </div>
+     <div class="button-row">
+      <button id="m4submit" type="button">
+       Check my guess
+      </button>
+      <button class="secondary-button" id="m4new" type="button">
+       New sensor
+      </button>
+     </div>
+     <div aria-live="polite" class="feedback" id="m4result">
+      Make your estimate before revealing the answer.
+     </div>
+     <div class="hidden" id="m4reveal">
+      <h3>
+       True values and comparison
+      </h3>
+      <p id="m4trueValues">
+      </p>
+      <div class="chart-wrap">
+       <canvas id="m4compare">
+       </canvas>
+      </div>
+     </div>
+    </section>
+   </section>
+   
+<section id="validation" class="module-section">
+  <div class="module-title">
+    <div>
+      <h2>Homework validation dashboard</h2>
+    </div>
+  </div>
+
+  <section class="panel validation-panel">
+    <h3>Six required tests</h3>
+
+    <div class="validation-row">
+      <span>1. First-order step response</span>
+      <strong>Expected: 0.632 / 0.950</strong>
+      <span id="dash1Value">Calculated: —</span>
+      <span id="dash1" class="status">Checking...</span>
+    </div>
+
+    <div class="validation-row">
+      <span>2. Frequency response</span>
+      <strong>Expected: 0.93 / 21.8°</strong>
+      <span id="dash2Value">Calculated: —</span>
+      <span id="dash2" class="status">Checking...</span>
+    </div>
+
+    <div class="validation-row">
+      <span>3. Dynamic error at 100 Hz</span>
+      <strong>Expected: 0.52 ms / 9.3°</strong>
+      <span id="dash3Value">Calculated: —</span>
+      <span id="dash3" class="status">Checking...</span>
+    </div>
+
+    <div class="validation-row">
+      <span>4. Second-order overshoot</span>
+      <strong>Expected: 16.3%</strong>
+      <span id="dash4Value">Calculated: —</span>
+      <span id="dash4" class="status">Checking...</span>
+    </div>
+
+    <div class="validation-row">
+      <span>5. Critical damping</span>
+      <strong>Expected: 0% overshoot</strong>
+      <span id="dash5Value">Calculated: —</span>
+      <span id="dash5" class="status">Checking...</span>
+    </div>
+
+    <div class="validation-row">
+      <span>6. State-space eigenvalues</span>
+      <strong>Expected: −1 ± j1.732</strong>
+      <span id="dash6Value">Calculated: —</span>
+      <span id="dash6" class="status">Checking...</span>
+    </div>
+  </section>
+</section>
+
+  </main>
+  <script defer="" src="module1.js">
+  </script>
+  <script defer="" src="module2.js">
+  </script>
+  <script defer="" src="module3.js">
+  </script>
+  <script defer="" src="module4.js">
+  </script>
+ </body>
+</html>
+
