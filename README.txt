@@ -1,5 +1,9 @@
 # ENCS4380 – Dynamic Characteristics Interactive Toolkit
 
+
+#####PROJECT LINK:
+https://tareqziad2005.github.io/encs4380-dynamics-36/?utm_source=chatgpt.com
+
 ## Project Overview
 
 This project is an interactive educational toolkit developed for the ENCS4380 course. Its goal is to help students understand and explore the dynamic characteristics of measurement systems through interactive simulations, visualizations, and practical examples.
