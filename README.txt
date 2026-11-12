@@ -55,9 +55,7 @@ AI tools, particularly ChatGPT, were used as development assistance during the p
 
 The team integrated these components into the project and worked on reviewing, understanding, and testing the overall implementation.
 
-## Screenshots
 
-Add screenshots of the four modules here to demonstrate the toolkit's interface and functionality.
 
 ## Running the Project Locally
 
