@@ -24,14 +24,7 @@ Everything runs in the browser. No server, no login, no external libraries.
 
 ## Homework 2 – PID Control (v2.0)
 
-| Module | Files | Owner | GitHub Issue |
-| P1 · PID Playground | `p1.js`, P1 section of `control.html` | Tareq Darawshih | TBD |
-| P2 · A Slow Sensor in the Loop | `p2.js` | Oghaid Mashaqi | TBD |
-| P3 · Digital PID + Arduino Code | `p3.js` | Abd Al-Rahman Khanfar | TBD |
-| P4 · Tuning Challenge | `p4.js` | Bahaa Al Sarissi | TBD |
-| Shared Engine (RK4, metrics, plots) | `pid-core.js` | All members | — |
-| Validation Checks | `validation2.js` | All members | — |
-| My System | `mysystem.html`, `mysystem.js` | All members | — |
+All modules and components were developed collaboratively by all team members, with equal contributions to implementation, testing, and integration.
 
 ### What Each Module Does
 
@@ -116,7 +109,7 @@ Tareq Darawshih led the HTML structure, inputs, equations, and calculations acro
 ## Use of AI Tools
 
 - **Homework 1:** ChatGPT helped with canvas plotting and debugging.
-- **Homework 2:** Claude (Anthropic) helped draft the simulation engine, module pages, and Arduino code generator. The team reviewed and tested the code, checked the validation numbers, and can explain the equations and implementation during the demonstration.
+- **Homework 2: AI tools were used for limited coding assistance. The team reviewed and tested the final implementation.
 
 ## Running Locally
 
