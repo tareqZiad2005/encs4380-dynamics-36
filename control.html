@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ENCS4380 Homework 2: PID control toolkit">
+  <title>PID Control Toolkit | ENCS4380</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="control.css">
+</head>
+<body class="control-page">
+
+  <header class="site-header">
+    <div class="header-inner">
+      <h1>PID Control Toolkit</h1>
+      <p class="subtitle-bar">Homework 2 · the Homework 1 models, now under feedback control</p>
+      <nav aria-label="Control section navigation" class="module-nav">
+        <a href="index.html">Homework 1 toolkit</a>
+        <a href="#p1">P1 · PID playground</a>
+        <a href="#p2">P2 · Slow sensor</a>
+        <a href="#p3">P3 · Digital PID</a>
+        <a href="#p4">P4 · Tuning challenge</a>
+        <a href="#validation">Validation</a>
+        <a href="mysystem.html">My system</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============================================================
+         P1 · PID PLAYGROUND
+         ============================================================ -->
+    <section class="module-section" id="p1">
+      <div class="module-title">
+        <h2>P1 · PID playground</h2>
+      </div>
+
+      <section class="panel">
+        <p>
+          The controller looks at the error e = r − y and decides how hard to push the plant.
+          Each term answers a different question: P reacts to the error now, I to the error that
+          has built up, and D to how fast the error is changing.
+        </p>
+        <p class="equation">u(t) = Kp·e(t) + Ki·∫e dt + Kd·de/dt</p>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 700 165" role="img" aria-label="Block diagram: setpoint, summing junction, PID controller, actuator limit, plant, output fed back to the summing junction">
+            <defs>
+              <marker id="arrow1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#475569"></path>
+              </marker>
+            </defs>
+            <g stroke="#475569" stroke-width="2" fill="none">
+              <line x1="40" y1="60" x2="75" y2="60" marker-end="url(#arrow1)"></line>
+              <circle cx="92" cy="60" r="15" fill="white"></circle>
+              <line x1="107" y1="60" x2="147" y2="60" marker-end="url(#arrow1)"></line>
+              <rect x="150" y="30" width="150" height="60" rx="6" fill="#e8efff" stroke="#2563eb"></rect>
+              <line x1="300" y1="60" x2="337" y2="60" marker-end="url(#arrow1)"></line>
+              <rect x="340" y="35" width="70" height="50" rx="6" fill="white"></rect>
+              <polyline points="352,73 366,73 384,47 398,47" stroke="#dc2626"></polyline>
+              <line x1="410" y1="60" x2="447" y2="60" marker-end="url(#arrow1)"></line>
+              <rect x="450" y="30" width="170" height="60" rx="6" fill="white"></rect>
+              <line x1="620" y1="60" x2="688" y2="60" marker-end="url(#arrow1)"></line>
+              <polyline points="652,60 652,140 92,140 92,78" marker-end="url(#arrow1)"></polyline>
+            </g>
+            <text x="6" y="55" font-size="15">r(t)</text>
+            <text x="66" y="50" font-size="15">+</text>
+            <text x="100" y="94" font-size="17">−</text>
+            <text x="120" y="52" font-size="14">e</text>
+            <text x="422" y="52" font-size="14">u</text>
+            <text x="658" y="52" font-size="15">y(t)</text>
+            <text x="225" y="55" font-size="15" font-weight="bold" text-anchor="middle">PID controller</text>
+            <text x="225" y="77" font-size="12" text-anchor="middle" id="p1pidText">Kp 9 · Ki 0 · Kd 0</text>
+            <text x="375" y="104" font-size="12" text-anchor="middle" id="p1limText">limit ±20</text>
+            <text x="535" y="55" font-size="15" font-weight="bold" text-anchor="middle">Plant</text>
+            <text x="535" y="77" font-size="12" text-anchor="middle" id="p1plantText">G(s)</text>
+            <text x="360" y="133" font-size="12" text-anchor="middle" fill="#475569">unity feedback: the controller sees the true y</text>
+          </svg>
+        </div>
+        <p class="small-note phone-only">Swipe the diagram sideways to see all of it.</p>
+      </section>
+
+      <section class="panel">
+        <h3>Guided tour</h3>
+        <p class="muted">Follow the steps in order: P only, then add I, then add D. Each step sets the sliders for you.</p>
+        <div class="tour" id="p1tour">
+          <button type="button" data-step="1">1</button>
+          <button type="button" data-step="2">2</button>
+          <button type="button" data-step="3">3</button>
+          <button type="button" data-step="4">4</button>
+          <button type="button" data-step="5">5</button>
+        </div>
+        <p class="explanation" id="p1tourText">Press step 1 to start.</p>
+      </section>
+
+      <section class="panel">
+        <h3>Plant</h3>
+        <div class="controls-grid">
+          <div class="control">
+            <label for="p1plant">Plant model</label>
+            <select id="p1plant">
+              <option value="first">First order (Module 1)</option>
+              <option value="second">Second order (Module 3)</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="p1K">Plant gain K: <output id="p1KVal">1.0</output></label>
+            <input id="p1K" type="range" min="0.2" max="3" step="0.1" value="1">
+          </div>
+          <div class="control" id="p1tauBox">
+            <label for="p1tau">Time constant τ: <output id="p1tauVal">1.0 s</output></label>
+            <input id="p1tau" type="range" min="0.2" max="10" step="0.1" value="1">
+          </div>
+          <div class="control hidden" id="p1zetaBox">
+            <label for="p1zeta">Damping ratio ζ: <output id="p1zetaVal">0.50</output></label>
+            <input id="p1zeta" type="range" min="0.05" max="2" step="0.01" value="0.5">
+          </div>
+          <div class="control hidden" id="p1wnBox">
+            <label for="p1wn">Natural frequency ωn: <output id="p1wnVal">2.0 rad/s</output></label>
+            <input id="p1wn" type="range" min="0.2" max="10" step="0.1" value="2">
+          </div>
+        </div>
+
+        <h3>Controller</h3>
+        <div class="controls-grid">
+          <div class="control">
+            <label for="p1Kp">Proportional gain Kp: <output id="p1KpVal">9.0</output></label>
+            <input id="p1Kp" type="range" min="0" max="20" step="0.1" value="9">
+          </div>
+          <div class="control">
+            <label for="p1Ki">Integral gain Ki: <output id="p1KiVal">0.0</output></label>
+            <input id="p1Ki" type="range" min="0" max="40" step="0.5" value="0">
+          </div>
+          <div class="control">
+            <label for="p1Kd">Derivative gain Kd: <output id="p1KdVal">0.00</output></label>
+            <input id="p1Kd" type="range" min="0" max="3" step="0.05" value="0">
+          </div>
+        </div>
+
+        <h3>Loop</h3>
+        <div class="controls-grid">
+          <div class="control">
+            <label for="p1r">Setpoint step r: <output id="p1rVal">1.0</output></label>
+            <input id="p1r" type="range" min="0.2" max="3" step="0.1" value="1">
+          </div>
+          <div class="control">
+            <label for="p1umax">Actuator limit |u| ≤ <output id="p1umaxVal">20.0</output></label>
+            <input id="p1umax" type="range" min="0.5" max="30" step="0.5" value="20">
+          </div>
+          <div class="control">
+            <label for="p1T">Time shown: <output id="p1TVal">4 s</output></label>
+            <input id="p1T" type="range" min="2" max="30" step="1" value="4">
+          </div>
+        </div>
+        <p class="small-note">
+          The closed loop is solved with RK4 every time a slider moves. The D term uses a 10 ms
+          filter so that the derivative of a sudden change stays finite, as in real controllers.
+          Integration pauses while u is at its limit (anti-windup; P3 lets you switch it off).
+        </p>
+      </section>
+
+      <section class="panel">
+        <div class="metric-grid">
+          <div class="metric-card"><span>Rise time (10–90%)</span><strong id="p1rise">—</strong></div>
+          <div class="metric-card"><span>Overshoot</span><strong id="p1os">—</strong></div>
+          <div class="metric-card"><span>Settling time (2%)</span><strong id="p1settle">—</strong></div>
+          <div class="metric-card"><span>Steady-state error</span><strong id="p1ess">—</strong></div>
+          <div class="metric-card"><span>Largest |u|</span><strong id="p1upeak">—</strong></div>
+          <div class="metric-card"><span>Time at the limit</span><strong id="p1sat">—</strong></div>
+          <div class="metric-card"><span>Loop</span><strong id="p1status">—</strong></div>
+        </div>
+
+        <h3>Output against setpoint</h3>
+        <div class="chart-wrap">
+          <canvas id="p1plot" role="img" aria-label="Closed-loop output and setpoint against time"></canvas>
+        </div>
+        <div class="legend">
+          <span><i class="swatch output-swatch"></i>Output y</span>
+          <span><i class="swatch setpoint-swatch"></i>Setpoint r</span>
+          <span><i class="swatch true-swatch"></i>±2% settling band</span>
+        </div>
+
+        <h3>Control signal</h3>
+        <div class="chart-wrap short-chart">
+          <canvas id="p1uplot" role="img" aria-label="Control signal u against time with actuator limits"></canvas>
+        </div>
+        <div class="legend">
+          <span><i class="swatch input-swatch"></i>Control signal u</span>
+          <span><i class="swatch limit-swatch"></i>Actuator limit</span>
+        </div>
+
+        <p class="explanation" id="p1explain" aria-live="polite"></p>
+      </section>
+
+      <section class="panel">
+        <h3>What each gain does</h3>
+        <p class="muted">The usual effect of raising one gain while the others stay fixed. Check each row with the sliders.</p>
+        <div class="table-wrap">
+          <table class="effects">
+            <thead>
+              <tr><th>Raise</th><th>Rise time</th><th>Overshoot</th><th>Settling time</th><th>Steady-state error</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Kp</td><td>Shorter</td><td>Larger</td><td>Small change</td><td>Smaller, never zero</td></tr>
+              <tr><td>Ki</td><td>Shorter</td><td>Larger</td><td>Longer</td><td>Removed</td></tr>
+              <tr><td>Kd</td><td>Small change</td><td>Smaller*</td><td>Shorter*</td><td>No effect</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small-note">
+          *D adds damping when the plant has inertia (second order). On a first-order plant, D only adds
+          to the plant's own lag: the characteristic equation becomes (τ + K·Kd)s² + (1 + K·Kp)s + K·Ki = 0,
+          so ζ falls as Kd grows. Try Kd on both plants to see the difference.
+        </p>
+      </section>
+
+      <section class="panel predict-panel">
+        <h3>Predict, then check</h3>
+        <p>
+          On the first-order plant with Kp = 9 and no I term, the output stops 10% short of the setpoint.
+          If you add Ki = 30, what happens to that 10% error?
+        </p>
+        <label for="p1predict">Your prediction</label>
+        <select id="p1predict">
+          <option value="">Choose…</option>
+          <option value="gone">It disappears.</option>
+          <option value="half">It gets smaller but stays.</option>
+          <option value="same">It stays at 10%.</option>
+        </select>
+        <button type="button" id="p1predictBtn">Check it on the plot</button>
+        <p class="feedback" id="p1predictFb" aria-live="polite">Make a prediction first. The page will then set the sliders and measure the result.</p>
+      </section>
+    </section>
+
+    <!-- ============================================================
+         P2 · SLOW SENSOR IN THE LOOP
+         ============================================================ -->
+    <section class="module-section" id="p2">
+      <div class="module-title">
+        <h2>P2 · A slow sensor in the loop</h2>
+      </div>
+
+      <section class="panel">
+        <p>
+          The controller never sees the true output. It sees what the sensor reports, and a
+          first-order sensor reports the past, smoothed (Homework 1). The controller keeps pushing
+          because the reading still looks low, and by the time the reading catches up the true output
+          has already gone past the setpoint.
+        </p>
+        <p class="equation">Sensor: τs·ẏm + ym = y &nbsp;·&nbsp; Plant: 1/(s + 1)</p>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 700 175" role="img" aria-label="Block diagram with a first-order sensor in the feedback path">
+            <defs>
+              <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#475569"></path>
+              </marker>
+            </defs>
+            <g stroke="#475569" stroke-width="2" fill="none">
+              <line x1="40" y1="60" x2="75" y2="60" marker-end="url(#arrow2)"></line>
+              <circle cx="92" cy="60" r="15" fill="white"></circle>
+              <line x1="107" y1="60" x2="167" y2="60" marker-end="url(#arrow2)"></line>
+              <rect x="170" y="30" width="150" height="60" rx="6" fill="#e8efff" stroke="#2563eb"></rect>
+              <line x1="320" y1="60" x2="387" y2="60" marker-end="url(#arrow2)"></line>
+              <rect x="390" y="30" width="170" height="60" rx="6" fill="white"></rect>
+              <line x1="560" y1="60" x2="688" y2="60" marker-end="url(#arrow2)"></line>
+              <polyline points="630,60 630,145 482,145" marker-end="url(#arrow2)"></polyline>
+              <rect x="300" y="120" width="180" height="50" rx="6" fill="#fff7ed" stroke="#d97706"></rect>
+              <polyline points="300,145 92,145 92,78" marker-end="url(#arrow2)"></polyline>
+            </g>
+            <text x="6" y="55" font-size="15">r(t)</text>
+            <text x="66" y="50" font-size="15">+</text>
+            <text x="100" y="94" font-size="17">−</text>
+            <text x="245" y="55" font-size="15" font-weight="bold" text-anchor="middle">PID controller</text>
+            <text x="245" y="77" font-size="12" text-anchor="middle" id="p2pidText">Kp 2 · Ki 6 · Kd 0</text>
+            <text x="475" y="55" font-size="15" font-weight="bold" text-anchor="middle">Plant</text>
+            <text x="475" y="77" font-size="12" text-anchor="middle">1 / (s + 1)</text>
+            <text x="636" y="52" font-size="15">true y(t)</text>
+            <text x="390" y="141" font-size="14" font-weight="bold" text-anchor="middle">Sensor</text>
+            <text x="390" y="160" font-size="12" text-anchor="middle" id="p2sensorText">1 / (0.10s + 1)</text>
+            <text x="120" y="166" font-size="13" fill="#b45309">ym (what the controller sees)</text>
+          </svg>
+        </div>
+        <p class="small-note phone-only">Swipe the diagram sideways to see all of it.</p>
+      </section>
+
+      <section class="panel">
+        <div class="controls-grid">
+          <div class="control">
+            <label for="p2tauS">Sensor time constant τs: <output id="p2tauSVal">0.10 s</output></label>
+            <input id="p2tauS" type="range" min="0" max="1.5" step="0.01" value="0.1">
+          </div>
+          <div class="control">
+            <label for="p2Kp">Kp: <output id="p2KpVal">2.0</output></label>
+            <input id="p2Kp" type="range" min="0" max="10" step="0.1" value="2">
+          </div>
+          <div class="control">
+            <label for="p2Ki">Ki: <output id="p2KiVal">6.0</output></label>
+            <input id="p2Ki" type="range" min="0" max="20" step="0.1" value="6">
+          </div>
+          <div class="control">
+            <label for="p2Kd">Kd: <output id="p2KdVal">0.00</output></label>
+            <input id="p2Kd" type="range" min="0" max="2" step="0.01" value="0">
+          </div>
+          <div class="control">
+            <label for="p2T">Time shown: <output id="p2TVal">15 s</output></label>
+            <input id="p2T" type="range" min="5" max="30" step="1" value="15">
+          </div>
+        </div>
+        <button type="button" class="secondary-button" id="p2reset">Reset to Kp = 2, Ki = 6, Kd = 0</button>
+
+        <div class="metric-grid">
+          <div class="metric-card"><span>Overshoot, true output</span><strong id="p2osTrue">—</strong></div>
+          <div class="metric-card"><span>Overshoot the sensor shows</span><strong id="p2osSensor">—</strong></div>
+          <div class="metric-card"><span>Settling time (2%)</span><strong id="p2settle">—</strong></div>
+          <div class="metric-card"><span>Loop</span><strong id="p2status">—</strong></div>
+          <div class="metric-card"><span>Sustained oscillation at τs = (Routh)</span><strong id="p2onset">—</strong></div>
+        </div>
+
+        <h3>True output and sensor reading</h3>
+        <div class="chart-wrap">
+          <canvas id="p2plot" role="img" aria-label="True output and sensor reading against time"></canvas>
+        </div>
+        <div class="legend">
+          <span><i class="swatch output-swatch"></i>True output y</span>
+          <span><i class="swatch sensor-swatch"></i>Sensor reading ym</span>
+          <span><i class="swatch setpoint-swatch"></i>Setpoint</span>
+        </div>
+        <p class="explanation" id="p2explain" aria-live="polite"></p>
+      </section>
+
+      <section class="panel">
+        <h3>Overshoot against sensor time constant</h3>
+        <p class="muted">
+          Each point is a full simulation with the current gains; the dot is the current τs. In the red
+          region the loop does not settle within the time shown. It starts before the Routh value because,
+          close to that limit, the oscillation still dies out, just very slowly.
+        </p>
+        <div class="chart-wrap short-chart">
+          <canvas id="p2sweep" role="img" aria-label="Overshoot of the true output against sensor time constant"></canvas>
+        </div>
+      </section>
+
+      <section class="panel predict-panel">
+        <h3>Predict, then check</h3>
+        <p>With Kp = 2 and Ki = 6, the sensor gets slower: τs goes from 0.1 s to 0.4 s. What happens to the overshoot of the true output?</p>
+        <label for="p2predict">Your prediction</label>
+        <select id="p2predict">
+          <option value="">Choose…</option>
+          <option value="grows">It grows a lot.</option>
+          <option value="shrinks">It shrinks, because the sensor smooths everything.</option>
+          <option value="same">It stays the same; the sensor only changes the reading.</option>
+        </select>
+        <button type="button" id="p2predictBtn">Check it on the plot</button>
+        <p class="feedback" id="p2predictFb" aria-live="polite">Make a prediction first.</p>
+      </section>
+    </section>
+
+    <!-- ============================================================
+         P3 · DIGITAL PID
+         ============================================================ -->
+    <section class="module-section" id="p3">
+      <div class="module-title">
+        <h2>P3 · Digital PID</h2>
+      </div>
+
+      <section class="panel">
+        <p>
+          An Arduino cannot integrate or differentiate. Every Ts seconds it reads the sensor once,
+          computes one value of u, and holds it until the next sample. The sum replaces the integral
+          and the difference replaces the derivative:
+        </p>
+        <p class="equation">u[k] = Kp·e[k] + Ki·Ts·Σ e[j] + Kd·(e[k] − e[k−1]) / Ts</p>
+        <p class="small-note">
+          Here the controller runs this formula exactly, and the plant between samples is solved with RK4.
+          The grey dashed curve is the same gains run as an ideal continuous controller.
+        </p>
+      </section>
+
+      <section class="panel">
+        <div class="controls-grid">
+          <div class="control">
+            <label for="p3Ts">Sampling time Ts: <output id="p3TsVal">0.020 s</output></label>
+            <input id="p3Ts" type="range" min="0" max="11" step="1" value="2">
+          </div>
+          <div class="control">
+            <label for="p3Kp">Kp: <output id="p3KpVal">4.0</output></label>
+            <input id="p3Kp" type="range" min="0" max="10" step="0.1" value="4">
+          </div>
+          <div class="control">
+            <label for="p3Ki">Ki: <output id="p3KiVal">6.0</output></label>
+            <input id="p3Ki" type="range" min="0" max="20" step="0.1" value="6">
+          </div>
+          <div class="control">
+            <label for="p3Kd">Kd: <output id="p3KdVal">0.10</output></label>
+            <input id="p3Kd" type="range" min="0" max="1" step="0.01" value="0.1">
+          </div>
+          <div class="control">
+            <label for="p3umax">Actuator limit |u| ≤ <output id="p3umaxVal">2.0</output></label>
+            <input id="p3umax" type="range" min="0.5" max="10" step="0.1" value="2">
+          </div>
+          <div class="control">
+            <label for="p3K">Plant gain K: <output id="p3KVal">1.0</output></label>
+            <input id="p3K" type="range" min="0.2" max="3" step="0.1" value="1">
+          </div>
+          <div class="control">
+            <label for="p3tau">Plant time constant τ: <output id="p3tauVal">1.0 s</output></label>
+            <input id="p3tau" type="range" min="0.2" max="5" step="0.1" value="1">
+          </div>
+          <div class="control">
+            <span class="check-row">
+              <input type="checkbox" id="p3aw">
+              <label for="p3aw">Anti-windup</label>
+            </span>
+            <p class="small-note">When on, the sum stops growing while u is stuck at its limit.</p>
+          </div>
+        </div>
+        <button type="button" class="secondary-button" id="p3reset">Reset P3</button>
+
+        <div class="metric-grid">
+          <div class="metric-card"><span>Overshoot</span><strong id="p3os">—</strong></div>
+          <div class="metric-card"><span>Settling time (2%)</span><strong id="p3settle">—</strong></div>
+          <div class="metric-card"><span>Steady-state error</span><strong id="p3ess">—</strong></div>
+          <div class="metric-card"><span>Samples per plant τ</span><strong id="p3ratio">—</strong></div>
+          <div class="metric-card"><span>Loop</span><strong id="p3status">—</strong></div>
+        </div>
+
+        <h3>Output</h3>
+        <div class="chart-wrap">
+          <canvas id="p3plot" role="img" aria-label="Output of the digital loop and of an ideal continuous loop"></canvas>
+        </div>
+        <div class="legend">
+          <span><i class="swatch output-swatch"></i>Digital PID</span>
+          <span><i class="swatch analog-swatch"></i>Ideal continuous PID</span>
+          <span><i class="swatch setpoint-swatch"></i>Setpoint</span>
+        </div>
+
+        <h3>Control signal (held between samples)</h3>
+        <div class="chart-wrap short-chart">
+          <canvas id="p3uplot" role="img" aria-label="Stair-step control signal"></canvas>
+        </div>
+        <div class="legend">
+          <span><i class="swatch input-swatch"></i>u[k], one dot per sample</span>
+          <span><i class="swatch limit-swatch"></i>Actuator limit</span>
+        </div>
+        <p class="explanation" id="p3explain" aria-live="polite"></p>
+      </section>
+
+      <section class="panel">
+        <h3>Performance against sampling time</h3>
+        <p class="muted">Overshoot for the current gains at each Ts on the slider. The red region is where the loop no longer settles.</p>
+        <div class="chart-wrap short-chart">
+          <canvas id="p3sweep" role="img" aria-label="Overshoot against sampling time"></canvas>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <h3>Arduino code for these gains</h3>
+          <button type="button" id="p3copy">Copy code</button>
+        </div>
+        <p class="muted">The loop uses the same lines as the simulation above, so the plot is what this code should do on the board.</p>
+        <pre class="code-block" id="p3code"></pre>
+      </section>
+
+      <section class="panel predict-panel">
+        <h3>Predict, then check</h3>
+        <p>Same gains, anti-windup off. Ts grows from 0.02 s to 0.3 s. What happens to the overshoot?</p>
+        <label for="p3predict">Your prediction</label>
+        <select id="p3predict">
+          <option value="">Choose…</option>
+          <option value="more">It grows.</option>
+          <option value="same">It stays the same; the gains did not change.</option>
+          <option value="less">It shrinks, because the controller reacts less often.</option>
+        </select>
+        <button type="button" id="p3predictBtn">Check it on the plot</button>
+        <p class="feedback" id="p3predictFb" aria-live="polite">Make a prediction first.</p>
+
+        <p>Now u hits its limit of 2 at the start. What will turning anti-windup on do to the overshoot?</p>
+        <label for="p3predict2">Your prediction</label>
+        <select id="p3predict2">
+          <option value="">Choose…</option>
+          <option value="less">It drops sharply.</option>
+          <option value="same">Nothing; the limit is the same.</option>
+          <option value="more">It grows.</option>
+        </select>
+        <button type="button" id="p3predict2Btn">Check it on the plot</button>
+        <p class="feedback" id="p3predict2Fb" aria-live="polite">Make a prediction first.</p>
+      </section>
+    </section>
+
+    <!-- ============================================================
+         P4 · TUNING CHALLENGE
+         ============================================================ -->
+    <section class="module-section" id="p4">
+      <div class="module-title">
+        <h2>P4 · Tuning challenge</h2>
+      </div>
+
+      <section class="panel">
+        <p>
+          A hidden plant is picked at random, the same way as Homework 1's "Guess the sensor".
+          You only see how it responds to a step on its own. Work out what kind of plant it is,
+          choose gains, then check them against the spec.
+        </p>
+        <div class="challenge-top">
+          <strong id="p4kind">Building a plant…</strong>
+          <span>Session score: <strong id="p4score">0 / 0</strong></span>
+        </div>
+
+        <h3>The spec</h3>
+        <ul class="spec-list" id="p4spec">
+          <li><span>Overshoot</span><span id="p4specOS">—</span><span class="pending" id="p4passOS">Not checked</span></li>
+          <li><span>Settling time (2%)</span><span id="p4specTs">—</span><span class="pending" id="p4passTs">Not checked</span></li>
+          <li><span>Steady-state error</span><span>zero (within 1%)</span><span class="pending" id="p4passEss">Not checked</span></li>
+        </ul>
+        <p class="small-note">Setpoint step r = 1. The actuator is limited to |u| ≤ 10.</p>
+
+        <h3>The hidden plant on its own (step u = 1, no controller)</h3>
+        <div class="chart-wrap">
+          <canvas id="p4open" role="img" aria-label="Noisy open-loop step response of the hidden plant"></canvas>
+        </div>
+        <p class="explanation hidden" id="p4hint"></p>
+        <button type="button" class="secondary-button" id="p4hintBtn">Show a hint</button>
+      </section>
+
+      <section class="panel">
+        <h3>Your design</h3>
+        <div class="controls-grid">
+          <div class="control">
+            <label for="p4Kp">Kp</label>
+            <input id="p4Kp" type="number" min="0" max="50" step="0.1" value="1">
+          </div>
+          <div class="control">
+            <label for="p4Ki">Ki</label>
+            <input id="p4Ki" type="number" min="0" max="50" step="0.1" value="0">
+          </div>
+          <div class="control">
+            <label for="p4Kd">Kd</label>
+            <input id="p4Kd" type="number" min="0" max="10" step="0.01" value="0">
+          </div>
+          <div class="control">
+            <label for="p4predict">Predict, then check: what will happen?</label>
+            <select id="p4predict">
+              <option value="">Choose…</option>
+              <option value="all">It meets all three parts.</option>
+              <option value="os">It fails the overshoot limit.</option>
+              <option value="ts">It fails the settling time.</option>
+              <option value="ess">It leaves a steady-state error.</option>
+            </select>
+          </div>
+        </div>
+        <div class="button-row">
+          <div>
+            <button type="button" id="p4check">Check my design</button>
+            <button type="button" class="secondary-button" id="p4solution">Show a solution</button>
+          </div>
+          <button type="button" class="secondary-button" id="p4new">New plant</button>
+        </div>
+        <p class="feedback" id="p4result" aria-live="polite">Choose gains and a prediction, then check your design.</p>
+
+        <div class="hidden" id="p4closedBox">
+          <h3>Closed-loop response</h3>
+          <div class="chart-wrap">
+            <canvas id="p4closed" role="img" aria-label="Closed-loop response with the spec limits"></canvas>
+          </div>
+          <div class="legend">
+            <span><i class="swatch output-swatch"></i>Your design</span>
+            <span><i class="swatch true-swatch"></i>Must stay in this band after the settling limit</span>
+            <span><i class="swatch limit-swatch"></i>Overshoot limit</span>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ============================================================
+         VALIDATION
+         ============================================================ -->
+    <section class="module-section" id="validation">
+      <div class="module-title">
+        <h2>Validation checks</h2>
+      </div>
+      <section class="panel validation-panel">
+        <p>
+          Plant K/(τs + 1) with K = 1 and τ = 1 s. Checks 1 and 3 are measured from the RK4
+          simulation of the loop; check 2 comes from the closed-loop state matrix and is then confirmed
+          by simulation. Nothing is copied from the formula.
+        </p>
+
+        <h3>1. P only, Kp = 9</h3>
+        <div class="validation-row four">
+          <span>Closed-loop τ = τ/(1 + K·Kp)</span>
+          <strong>Expected: 0.100 s</strong>
+          <span id="v1aVal">Calculated: —</span>
+          <span class="status" id="v1a">Checking…</span>
+        </div>
+        <div class="validation-row four">
+          <span>Steady-state error = 1/(1 + K·Kp)</span>
+          <strong>Expected: 10.0%</strong>
+          <span id="v1bVal">Calculated: —</span>
+          <span class="status" id="v1b">Checking…</span>
+        </div>
+        <p class="small-note">τ is read off the curve as the time it takes to reach 63.2% of its final value, as in Module 1.</p>
+
+        <h3>2. PI with Kp = 1, Ki = 1</h3>
+        <div class="validation-row four">
+          <span>ωn = √(K·Ki/τ)</span>
+          <strong>Expected: 1.000 rad/s</strong>
+          <span id="v2aVal">Calculated: —</span>
+          <span class="status" id="v2a">Checking…</span>
+        </div>
+        <div class="validation-row four">
+          <span>ζ = (1 + K·Kp) / (2√(τ·K·Ki))</span>
+          <strong>Expected: 1.000</strong>
+          <span id="v2bVal">Calculated: —</span>
+          <span class="status" id="v2b">Checking…</span>
+        </div>
+        <p class="small-note" id="v2note">
+          ωn and ζ come from the eigenvalues of the closed-loop state matrix with states [y, ∫e],
+          the same eigenvalue idea as Module 3.
+        </p>
+
+        <h3>3. Any PI controller</h3>
+        <div class="validation-row four">
+          <span>Zero steady-state error for a step</span>
+          <strong>Expected: 0% for every PI</strong>
+          <span id="v3Val">Calculated: —</span>
+          <span class="status" id="v3">Checking…</span>
+        </div>
+        <p class="small-note" id="v3note"></p>
+        <button type="button" class="secondary-button" id="v3again">Test 5 new random PI controllers</button>
+      </section>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>ENCS4380 · Interfacing Techniques · Birzeit University</p>
+    <p><a href="index.html">Homework 1 toolkit</a> · <a href="mysystem.html">My system</a></p>
+  </footer>
+
+  <script src="pid-core.js"></script>
+  <script defer src="p1.js"></script>
+  <script defer src="p2.js"></script>
+  <script defer src="p3.js"></script>
+  <script defer src="p4.js"></script>
+  <script defer src="validation2.js"></script>
+</body>
+</html>

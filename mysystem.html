@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ENCS4380 Homework 2: controller design for our own project">
+  <title>My system | PID Control Toolkit</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="control.css">
+</head>
+<body class="control-page">
+
+  <header class="site-header">
+    <div class="header-inner">
+      <h1>My system</h1>
+      <p class="subtitle-bar" id="msSubtitle">A controller for a plant from our course project</p>
+      <nav aria-label="Control section navigation" class="module-nav">
+        <a href="index.html">Homework 1 toolkit</a>
+        <a href="control.html">PID toolkit (P1–P4)</a>
+        <a href="#plant">1 · Plant</a>
+        <a href="#spec">2 · Spec</a>
+        <a href="#design">3 · Design</a>
+        <a href="#code">4 · Arduino code</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <p class="notice hidden" id="msNotice">
+      These are example numbers, not our measurement. Replace the values at the top of
+      <strong>mysystem.js</strong> (or fit them from a step-test log below) before the v2.0 release.
+    </p>
+
+    <!-- 1 · PLANT -->
+    <section class="module-section" id="plant">
+      <div class="module-title"><h2>1 · The plant and where its numbers came from</h2></div>
+
+      <section class="panel">
+        <p id="msActuator"></p>
+        <p class="equation" id="msModel">G(s) = K / (τs + 1)</p>
+        <div class="metric-grid">
+          <div class="metric-card"><span>Gain K</span><strong id="msKShow">—</strong></div>
+          <div class="metric-card"><span>Time constant τ</span><strong id="msTauShow">—</strong></div>
+          <div class="metric-card"><span>Full-scale output (u = 100%)</span><strong id="msFull">—</strong></div>
+        </div>
+        <h3>Source</h3>
+        <p id="msSource"></p>
+      </section>
+
+      <section class="panel">
+        <h3>Fit K and τ from a step-test log</h3>
+        <p>
+          Apply a PWM step from 0 to a fixed duty, log time and output, and paste the log here as two
+          columns (time in s, output). The page uses the two methods from Module 1: the 63.2% point and
+          the straight line of ln(error fraction) against t, whose slope is −1/τ.
+        </p>
+        <div class="controls-grid">
+          <div class="control">
+            <label for="msStep">PWM step size (%)</label>
+            <input id="msStep" type="number" min="1" max="100" step="1" value="60">
+          </div>
+        </div>
+        <label for="msLog" class="group-label">Log (time, output), one sample per line</label>
+        <textarea id="msLog" spellcheck="false" placeholder="0.000, 0&#10;0.005, 12.4&#10;0.010, 24.1&#10;…"></textarea>
+        <div class="button-row">
+          <div>
+            <button type="button" id="msFit">Fit K and τ</button>
+            <button type="button" class="secondary-button" id="msUseFit" disabled>Use the fitted values</button>
+          </div>
+          <button type="button" class="secondary-button" id="msDemoLog">Try it with a made-up log</button>
+        </div>
+        <p class="feedback" id="msFitResult" aria-live="polite">Paste a log, then press Fit.</p>
+        <div class="chart-wrap hidden" id="msFitBox">
+          <canvas id="msFitPlot" role="img" aria-label="Logged step response with the fitted first-order curve"></canvas>
+        </div>
+        <details>
+          <summary>An Arduino sketch for the step test</summary>
+          <pre class="code-block" id="msStepSketch"></pre>
+        </details>
+      </section>
+    </section>
+
+    <!-- 2 · SPEC -->
+    <section class="module-section" id="spec">
+      <div class="module-title"><h2>2 · The spec and why it matters</h2></div>
+      <section class="panel">
+        <p id="msWhy"></p>
+        <div class="controls-grid">
+          <div class="control">
+            <label for="msZeta">Target damping ζ: <output id="msZetaVal">0.70</output></label>
+            <input id="msZeta" type="range" min="0.6" max="0.8" step="0.01" value="0.7">
+            <div class="range-labels"><span>0.6</span><span>0.8 (practical range from the lecture)</span></div>
+          </div>
+          <div class="control">
+            <label for="msTs">Settling time target: <output id="msTsVal">0.35 s</output></label>
+            <input id="msTs" type="range" min="0.05" max="2" step="0.01" value="0.35">
+          </div>
+          <div class="control">
+            <label for="msR">Setpoint: <output id="msRVal">300</output></label>
+            <input id="msR" type="range" min="10" max="1000" step="10" value="300">
+          </div>
+        </div>
+        <ul class="spec-list">
+          <li><span>Damping of the closed loop</span><span id="msSpecZeta">0.6 ≤ ζ ≤ 0.8</span><span class="pending" id="msPassZeta">—</span></li>
+          <li><span>Settling time (2%)</span><span id="msSpecTs">—</span><span class="pending" id="msPassTs">—</span></li>
+          <li><span>Steady-state error</span><span>zero (within 1%)</span><span class="pending" id="msPassEss">—</span></li>
+          <li><span>PWM command</span><span>stays within 0–100%</span><span class="pending" id="msPassPwm">—</span></li>
+        </ul>
+      </section>
+    </section>
+
+    <!-- 3 · DESIGN -->
+    <section class="module-section" id="design">
+      <div class="module-title"><h2>3 · Our design</h2></div>
+      <section class="panel">
+        <p>
+          With a PI controller on K/(τs + 1), the closed loop has the characteristic equation
+          τs² + (1 + K·Kp)s + K·Ki = 0 (validation check 2). Matching it to s² + 2ζωn s + ωn² gives the gains
+          directly, with ωn chosen from the settling time, ts ≈ 4/(ζωn):
+        </p>
+        <p class="equation">ωn = 4/(ζ·ts) · Ki = τωn²/K · Kp = (2ζωnτ − 1)/K</p>
+        <button type="button" id="msDesign">Design PI from the spec</button>
+        <p class="explanation" id="msDesignNote">Press the button to compute gains from the spec, then fine-tune them below if needed.</p>
+
+        <div class="controls-grid">
+          <div class="control">
+            <label for="msKp">Kp (% per <span class="ms-unit">unit</span>)</label>
+            <input id="msKp" type="number" min="0" step="0.001" value="0.2">
+          </div>
+          <div class="control">
+            <label for="msKi">Ki</label>
+            <input id="msKi" type="number" min="0" step="0.01" value="4">
+          </div>
+          <div class="control">
+            <label for="msSample">Sampling time Ts</label>
+            <select id="msSample">
+              <option value="0.002">2 ms</option>
+              <option value="0.005">5 ms</option>
+              <option value="0.01" selected>10 ms</option>
+              <option value="0.02">20 ms</option>
+              <option value="0.05">50 ms</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-card"><span>Closed-loop ζ (from the gains)</span><strong id="msZetaCl">—</strong></div>
+          <div class="metric-card"><span>Closed-loop ωn</span><strong id="msWnCl">—</strong></div>
+          <div class="metric-card"><span>Overshoot</span><strong id="msOs">—</strong></div>
+          <div class="metric-card"><span>Settling time (2%)</span><strong id="msSettle">—</strong></div>
+          <div class="metric-card"><span>Peak PWM</span><strong id="msPeak">—</strong></div>
+        </div>
+
+        <h3>Simulated response (digital PI at the chosen Ts, PWM limited to 0–100%)</h3>
+        <div class="chart-wrap">
+          <canvas id="msPlot" role="img" aria-label="Simulated closed-loop response of our system"></canvas>
+        </div>
+        <div class="legend">
+          <span><i class="swatch output-swatch"></i><span id="msOutLabel">Output</span></span>
+          <span><i class="swatch setpoint-swatch"></i>Setpoint</span>
+        </div>
+        <h3>PWM command</h3>
+        <div class="chart-wrap short-chart">
+          <canvas id="msUPlot" role="img" aria-label="PWM command against time"></canvas>
+        </div>
+        <div class="legend">
+          <span><i class="swatch input-swatch"></i>PWM (%)</span>
+          <span><i class="swatch limit-swatch"></i>0% and 100% limits</span>
+        </div>
+        <p class="explanation" id="msExplain" aria-live="polite"></p>
+      </section>
+    </section>
+
+    <!-- 4 · CODE -->
+    <section class="module-section" id="code">
+      <div class="module-title"><h2>4 · Arduino code for our controller</h2></div>
+      <section class="panel">
+        <div class="section-heading">
+          <p class="muted">Generated from the gains above, with anti-windup on.</p>
+          <button type="button" id="msCopy">Copy code</button>
+        </div>
+        <pre class="code-block" id="msCode"></pre>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>ENCS4380 · Interfacing Techniques · Birzeit University</p>
+    <p><a href="index.html">Homework 1 toolkit</a> · <a href="control.html">PID toolkit</a></p>
+  </footer>
+
+  <script src="pid-core.js"></script>
+  <script defer src="mysystem.js"></script>
+</body>
+</html>

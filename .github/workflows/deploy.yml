@@ -31,10 +31,10 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload website folder
+      - name: Upload the site (repository root)
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./website
+          path: .
 
       - name: Deploy
         id: deployment
